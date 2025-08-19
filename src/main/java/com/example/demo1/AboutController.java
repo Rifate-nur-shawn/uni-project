@@ -50,7 +50,7 @@ public class AboutController implements Initializable {
     @FXML
     private void navigateToHome(ActionEvent event) {
         try {
-            loadScene("home.fxml", "MediTrack - Home", event);
+            loadScene("home.fxml", "e-Dispensary - Home", event);
         } catch (Exception e) {
             showInfoAlert("Navigation", "Home page would load here.\nThis would show the main pharmacy homepage with featured products and services.");
         }
@@ -59,7 +59,7 @@ public class AboutController implements Initializable {
     @FXML
     private void navigateToProducts(ActionEvent event) {
         try {
-            loadScene("products.fxml", "MediTrack - Products", event);
+            loadScene("products.fxml", "e-Dispensary - Products", event);
         } catch (Exception e) {
             showInfoAlert("Navigation", "Products page would load here.\nThis would show the full catalog of medicines and health products.");
         }

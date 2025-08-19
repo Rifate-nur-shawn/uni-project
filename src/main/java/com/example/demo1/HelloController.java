@@ -154,10 +154,10 @@ public class HelloController implements Initializable {
                     // Load the appropriate dashboard based on user role
                     if (isCurrentUserAdmin) {
                         // Admin user - load admin dashboard
-                        loadNewScene("dashboard.fxml", "MediTrack - Admin Dashboard");
+                        loadNewScene("dashboard.fxml", "e-Dispensary - Admin Dashboard");
                     } else {
                         // Regular user/pharmacist - load user dashboard
-                        loadNewScene("pharmacy-dashboard.fxml", "MediTrack - Pharmacy Dashboard");
+                        loadNewScene("pharmacy-dashboard.fxml", "e-Dispensary - Pharmacy Dashboard");
                     }
                 } catch (Exception e) {
                     // If dashboard FXML files don't exist, show a success message
