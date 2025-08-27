@@ -67,9 +67,31 @@ public class NavbarController implements Initializable {
     @FXML
     private void navigateToProducts(ActionEvent event) {
         try {
-            loadScene("products.fxml", "e-Dispensary - Products", event);
+            // Debug: Print to console
+            System.out.println("Attempting to load Products page...");
+
+            // Check if the FXML file exists
+            URL productsResource = getClass().getResource("products.fxml");
+            if (productsResource == null) {
+                throw new IOException("products.fxml file not found in resources");
+            }
+
+            System.out.println("Products.fxml found, loading...");
+            FXMLLoader loader = new FXMLLoader(productsResource);
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root, 1000, 700);
+            stage.setTitle("e-Dispensary - Products");
+            stage.setScene(scene);
+            stage.show();
+
+            System.out.println("Products page loaded successfully!");
+
         } catch (Exception e) {
-            showInfoAlert("Navigation", "Products page would load here.");
+            System.err.println("Error loading Products page: " + e.getMessage());
+            e.printStackTrace();
+            showErrorAlert("Navigation Error", "Could not load Products page. Error: " + e.getMessage());
         }
     }
 
