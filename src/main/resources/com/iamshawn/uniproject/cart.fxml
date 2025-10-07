@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.iamshawn.uniproject.CartController">
+   <!-- Navbar will be loaded programmatically at the top -->
+
+   <center>
+      <VBox alignment="TOP_CENTER" prefHeight="620.0" prefWidth="1000.0" spacing="20.0" style="-fx-background-color: #f5f5f5;" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
+         <children>
+            <!-- Page Title -->
+            <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="940.0">
+               <children>
+                  <Label text="Shopping Cart" textFill="#449b6d">
+                     <font>
+                        <Font name="System Bold" size="32.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+
+            <!-- Cart Table -->
+            <VBox prefHeight="400.0" prefWidth="940.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 3);" VBox.vgrow="ALWAYS">
+               <padding>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </padding>
+               <children>
+                  <TableView fx:id="cartTableView" prefHeight="350.0" prefWidth="900.0" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="colProductName" prefWidth="250.0" text="Product Name" />
+                        <TableColumn fx:id="colBrand" prefWidth="150.0" text="Brand" />
+                        <TableColumn fx:id="colPrice" prefWidth="120.0" text="Price" />
+                        <TableColumn fx:id="colQuantity" prefWidth="100.0" text="Quantity" />
+                        <TableColumn fx:id="colTotal" prefWidth="150.0" text="Total" />
+                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+               </children>
+            </VBox>
+
+            <!-- Cart Actions and Summary -->
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="940.0" spacing="30.0">
+               <children>
+                  <!-- Action Buttons -->
+                  <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="500.0" spacing="15.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Button fx:id="removeButton" mnemonicParsing="false" onAction="#handleRemoveItem" prefHeight="45.0" prefWidth="180.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 10; -fx-cursor: hand;" text="Remove Selected">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </HBox>
+
+                  <!-- Total and Checkout -->
+                  <VBox alignment="CENTER_RIGHT" prefHeight="80.0" prefWidth="400.0" spacing="10.0">
+                     <children>
+                        <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                           <children>
+                              <Label text="Total Amount:" textFill="#333333">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="totalAmountLabel" text="$0.00" textFill="#449b6d">
+                                 <font>
+                                    <Font name="System Bold" size="24.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </HBox>
+                        <Button fx:id="checkoutButton" mnemonicParsing="false" onAction="#handleCheckout" prefHeight="45.0" prefWidth="250.0" style="-fx-background-color: #449b6d; -fx-text-fill: white; -fx-background-radius: 10; -fx-cursor: hand;" text="Proceed to Checkout">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>
+
