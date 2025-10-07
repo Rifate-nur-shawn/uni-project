@@ -24,8 +24,9 @@ CREATE TABLE IF NOT EXISTS user (
 -- Stores medicine/product information
 -- ====================================================
 CREATE TABLE IF NOT EXISTS medicine (
-    medicine_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(200) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    medicine_id INT UNIQUE NOT NULL,
+    productName VARCHAR(200) NOT NULL,
     brand VARCHAR(150) NOT NULL,
     type VARCHAR(100),
     status VARCHAR(50) DEFAULT 'Available',
@@ -44,25 +45,35 @@ CREATE TABLE IF NOT EXISTS cart (
     user_id VARCHAR(100) NOT NULL,
     medicine_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
-    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id) ON DELETE CASCADE
+    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ====================================================
 -- Table: customer
--- Stores purchase history/orders
+-- Stores purchase line items
 -- ====================================================
 CREATE TABLE IF NOT EXISTS customer (
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_username VARCHAR(100),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
     type VARCHAR(100),
     medicine_id INT,
     brand VARCHAR(150),
     productName VARCHAR(200),
     quantity INT,
     price DECIMAL(10, 2),
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id) ON DELETE SET NULL
+    date DATE
+);
+
+-- ====================================================
+-- Table: customer_info
+-- Stores purchase summaries/invoices
+-- ====================================================
+CREATE TABLE IF NOT EXISTS customer_info (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ====================================================
@@ -77,18 +88,19 @@ ON DUPLICATE KEY UPDATE username=username;
 -- ====================================================
 -- Insert Sample Medicine Data
 -- ====================================================
-INSERT INTO medicine (product_name, brand, type, status, price, image, date) VALUES
-('Amoxicillin 500mg', 'Generic Pharma', 'Antibiotic', 'Available', 18.99, '/images/m.png', CURDATE()),
-('Paracetamol 500mg', 'Tylenol', 'Pain Relief', 'Available', 5.99, '/images/addmed.png', CURDATE()),
-('Ibuprofen 400mg', 'Advil', 'Pain Relief', 'Available', 8.50, '/images/purchaseMedi.png', CURDATE()),
-('Omega-3 Fish Oil', 'Nature Made', 'Supplement', 'Available', 24.99, '/images/addmed.png', CURDATE()),
-('Vitamin D3 1000 IU', 'Nature Made', 'Supplement', 'Available', 15.99, '/images/doctor.png', CURDATE()),
-('Lisinopril 10mg', 'Zestril', 'Blood Pressure', 'Available', 12.50, '/images/purchaseMedi.png', CURDATE()),
-('Metformin 500mg', 'Glucophage', 'Diabetes', 'Available', 22.99, '/images/m.png', CURDATE()),
-('Aspirin 81mg', 'Bayer', 'Blood Thinner', 'Available', 6.99, '/images/stetho.png', CURDATE()),
-('Omeprazole 20mg', 'Prilosec', 'Acid Reducer', 'Available', 19.99, '/images/okk.png', CURDATE()),
-('Cetirizine 10mg', 'Zyrtec', 'Allergy', 'Available', 11.50, '/images/addmed.png', CURDATE())
-ON DUPLICATE KEY UPDATE product_name=product_name;
+INSERT INTO medicine (medicine_id, productName, brand, type, status, price, image, date) VALUES
+(1, 'Amoxicillin 500mg', 'Generic Pharma', 'Antibiotics', 'Available', 18.99, '/images/m.png', CURDATE()),
+(2, 'Paracetamol 500mg', 'Tylenol', 'Antibiotics', 'Available', 5.99, '/images/addmed.png', CURDATE()),
+(3, 'Ibuprofen 400mg', 'Advil', 'Hydrocodone', 'Available', 8.50, '/images/purchaseMedi.png', CURDATE()),
+(4, 'Omega-3 Fish Oil', 'Nature Made', 'Metformin', 'Available', 24.99, '/images/addmed.png', CURDATE()),
+(5, 'Vitamin D3 1000 IU', 'Nature Made', 'Losartan', 'Available', 15.99, '/images/doctor.png', CURDATE()),
+(6, 'Lisinopril 10mg', 'Zestril', 'Losartan', 'Available', 12.50, '/images/purchaseMedi.png', CURDATE()),
+(7, 'Metformin 500mg', 'Glucophage', 'Metformin', 'Available', 22.99, '/images/m.png', CURDATE()),
+(8, 'Aspirin 81mg', 'Bayer', 'Albuterol', 'Available', 6.99, '/images/stetho.png', CURDATE()),
+(9, 'Omeprazole 20mg', 'Prilosec', 'Hydrocodone', 'Available', 19.99, '/images/okk.png', CURDATE()),
+(10, 'Cetirizine 10mg', 'Zyrtec', 'Albuterol', 'Available', 11.50, '/images/addmed.png', CURDATE()),
+(11, 'Multivitamin', 'HealthCare Plus', 'Metformin', 'Available', 29.99, '/images/m.png', CURDATE())
+ON DUPLICATE KEY UPDATE productName=productName;
 
 -- ====================================================
 -- Display Success Message
@@ -96,4 +108,3 @@ ON DUPLICATE KEY UPDATE product_name=product_name;
 SELECT 'Database setup completed successfully!' AS Status;
 SELECT COUNT(*) AS 'Total Users' FROM user;
 SELECT COUNT(*) AS 'Total Medicines' FROM medicine;
-

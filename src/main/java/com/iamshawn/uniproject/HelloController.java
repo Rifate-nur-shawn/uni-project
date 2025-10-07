@@ -194,14 +194,8 @@ public class HelloController implements Initializable {
             currentStage.close();
 
             try {
-                // Load the appropriate dashboard based on user role
-                if (isCurrentUserAdmin) {
-                    // Admin user - load admin dashboard
-                    loadAdminDashboard();
-                } else {
-                    // Regular user - load home page
-                    loadHomePage();
-                }
+                // Load the dashboard for all users
+                loadAdminDashboard();
             } catch (Exception e) {
                 System.err.println("Error loading dashboard: " + e.getMessage());
                 e.printStackTrace();
