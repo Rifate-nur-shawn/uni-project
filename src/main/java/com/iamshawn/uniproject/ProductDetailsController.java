@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-public class ProductDetailsController implements Initializable {
+public class  ProductDetailsController implements Initializable {
 
     @FXML
     private BorderPane mainBorderPane;

@@ -34,8 +34,7 @@ public class HelloApplication extends Application {
             stage.setY(event.getScreenY() - y);
         });
 
-        stage.show();
-    }
+        stage.show();}
 
     // fix the repo
 
