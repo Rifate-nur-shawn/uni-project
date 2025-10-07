@@ -15,6 +15,9 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -129,60 +132,94 @@ public class HelloController implements Initializable {
         String inputUsername = username.getText().trim();
         String inputPassword = password.getText();
 
-        // Check if user exists and password matches
-        if (users.containsKey(inputUsername)) {
+        // Try to authenticate from database first
+        Connection connect = database.connectDb();
+        boolean authenticatedFromDB = false;
+        boolean isAdmin = false;
+        String userName = "";
+
+        if (connect != null) {
+            try {
+                String sql = "SELECT * FROM user WHERE username = ? AND password = ?";
+                PreparedStatement prepare = connect.prepareStatement(sql);
+                prepare.setString(1, inputUsername);
+                prepare.setString(2, inputPassword);
+                ResultSet result = prepare.executeQuery();
+
+                if (result.next()) {
+                    // User found in database
+                    authenticatedFromDB = true;
+                    userName = result.getString("username");
+                    String role = result.getString("role");
+                    isAdmin = "admin".equalsIgnoreCase(role);
+                }
+
+                result.close();
+                prepare.close();
+                connect.close();
+            } catch (Exception e) {
+                System.err.println("Database authentication error: " + e.getMessage());
+                // Fall back to in-memory authentication
+            }
+        }
+
+        // Fall back to in-memory authentication if database fails
+        if (!authenticatedFromDB && users.containsKey(inputUsername)) {
             UserData userData = users.get(inputUsername);
             if (userData.password.equals(inputPassword)) {
-                // Successful login
-                currentUsername = inputUsername;
-                isCurrentUserAdmin = userData.isAdmin;
+                authenticatedFromDB = true;
+                userName = userData.name;
+                isAdmin = userData.isAdmin;
+            }
+        }
 
-                alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Login Successful");
-                alert.setHeaderText(null);
-                alert.setContentText("Welcome, " + userData.name + "!");
-                alert.showAndWait();
+        // Check authentication result
+        if (authenticatedFromDB) {
+            // Successful login
+            currentUsername = inputUsername;
+            isCurrentUserAdmin = isAdmin;
 
-                // Clear the login fields
-                username.clear();
-                password.clear();
+            alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Login Successful");
+            alert.setHeaderText(null);
+            alert.setContentText("Welcome, " + inputUsername + "!");
+            alert.showAndWait();
 
-                // Close current window
-                ((Stage) loginbtn.getScene().getWindow()).close();
+            // Clear the login fields
+            username.clear();
+            password.clear();
 
-                try {
-                    // Load the appropriate dashboard based on user role
-                    if (isCurrentUserAdmin) {
-                        // Admin user - load admin dashboard
-                        loadNewScene("dashboard.fxml", "e-Dispensary - Admin Dashboard");
-                    } else {
-                        // Regular user/pharmacist - load user dashboard
-                        loadNewScene("pharmacy-dashboard.fxml", "e-Dispensary - Pharmacy Dashboard");
-                    }
-                } catch (Exception e) {
-                    // If dashboard FXML files don't exist, show a success message
-                    alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Navigation");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Login successful! " + (isCurrentUserAdmin ? "Admin" : "Pharmacist") + " dashboard would load here.\n\nUser: " + userData.name);
-                    alert.showAndWait();
+            // Close current window
+            Stage currentStage = (Stage) loginbtn.getScene().getWindow();
+            currentStage.close();
+
+            try {
+                // Load the appropriate dashboard based on user role
+                if (isCurrentUserAdmin) {
+                    // Admin user - load admin dashboard
+                    loadAdminDashboard();
+                } else {
+                    // Regular user - load home page
+                    loadHomePage();
                 }
-            } else {
-                // Wrong password
+            } catch (Exception e) {
+                System.err.println("Error loading dashboard: " + e.getMessage());
+                e.printStackTrace();
+
                 alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Login Failed");
+                alert.setTitle("Navigation Error");
                 alert.setHeaderText(null);
-                alert.setContentText("Incorrect password!");
+                alert.setContentText("Error loading dashboard: " + e.getMessage());
                 alert.showAndWait();
-                password.clear(); // Clear password field
             }
         } else {
-            // User doesn't exist
+            // Authentication failed
             alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Login Failed");
             alert.setHeaderText(null);
-            alert.setContentText("Username not found!");
+            alert.setContentText("Incorrect username or password!");
             alert.showAndWait();
+            password.clear();
         }
     }
 
@@ -224,31 +261,105 @@ public class HelloController implements Initializable {
             return;
         }
 
-        // Check if username already exists
-        if (users.containsKey(newUsername)) {
-            alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Username Taken");
-            alert.setHeaderText(null);
-            alert.setContentText("Username '" + newUsername + "' already exists!\nPlease choose a different username.");
-            alert.showAndWait();
+        // Try to register user in database
+        Connection connect = database.connectDb();
+        if (connect != null) {
+            try {
+                // First check if username already exists
+                String checkSql = "SELECT * FROM user WHERE username = ?";
+                PreparedStatement checkStmt = connect.prepareStatement(checkSql);
+                checkStmt.setString(1, newUsername);
+                ResultSet checkResult = checkStmt.executeQuery();
+
+                if (checkResult.next()) {
+                    // Username already exists
+                    alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Username Taken");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Username '" + newUsername + "' already exists!\nPlease choose a different username.");
+                    alert.showAndWait();
+                    checkResult.close();
+                    checkStmt.close();
+                    connect.close();
+                    return;
+                }
+                checkResult.close();
+                checkStmt.close();
+
+                // Insert new user into database
+                String insertSql = "INSERT INTO user (username, password, email, role) VALUES (?, ?, ?, 'customer')";
+                PreparedStatement insertStmt = connect.prepareStatement(insertSql);
+                insertStmt.setString(1, newUsername);
+                insertStmt.setString(2, newPassword);
+                insertStmt.setString(3, newName); // Using name as email for now
+
+                int result = insertStmt.executeUpdate();
+
+                if (result > 0) {
+                    // Also add to in-memory storage for compatibility
+                    users.put(newUsername, new UserData(newName, newPassword, false));
+
+                    alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Registration Successful");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Account created successfully!\nYou can now login with your credentials.");
+                    alert.showAndWait();
+
+                    // Clear signup fields
+                    signup_name.clear();
+                    signup_username.clear();
+                    signup_password.clear();
+
+                    // Switch to login form
+                    login_form.setVisible(true);
+                    signup_form.setVisible(false);
+                } else {
+                    alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Registration Failed");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Failed to create account. Please try again.");
+                    alert.showAndWait();
+                }
+
+                insertStmt.close();
+                connect.close();
+
+            } catch (Exception e) {
+                System.err.println("Database registration error: " + e.getMessage());
+                e.printStackTrace();
+
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Database Error");
+                alert.setHeaderText(null);
+                alert.setContentText("Error connecting to database: " + e.getMessage());
+                alert.showAndWait();
+            }
         } else {
-            // Add new user (default as pharmacist/regular user, not admin)
-            users.put(newUsername, new UserData(newName, newPassword, false));
+            // Database not available, fall back to in-memory storage
+            if (users.containsKey(newUsername)) {
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Username Taken");
+                alert.setHeaderText(null);
+                alert.setContentText("Username '" + newUsername + "' already exists!\nPlease choose a different username.");
+                alert.showAndWait();
+            } else {
+                users.put(newUsername, new UserData(newName, newPassword, false));
 
-            alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Registration Successful");
-            alert.setHeaderText(null);
-            alert.setContentText("Account created successfully!\nYou can now login with your credentials.");
-            alert.showAndWait();
+                alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Registration Successful");
+                alert.setHeaderText(null);
+                alert.setContentText("Account created successfully!\nYou can now login with your credentials.");
+                alert.showAndWait();
 
-            // Clear signup fields
-            signup_name.clear();
-            signup_username.clear();
-            signup_password.clear();
+                // Clear signup fields
+                signup_name.clear();
+                signup_username.clear();
+                signup_password.clear();
 
-            // Switch to login form
-            login_form.setVisible(true);
-            signup_form.setVisible(false);
+                // Switch to login form
+                login_form.setVisible(true);
+                signup_form.setVisible(false);
+            }
         }
     }
 
@@ -258,7 +369,33 @@ public class HelloController implements Initializable {
         System.exit(0);
     }
 
-    // Helper method to load new scenes
+    // Helper method to load admin dashboard
+    private void loadAdminDashboard() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("dashboard.fxml"));
+        Parent root = loader.load();
+
+        Stage stage = new Stage();
+        Scene scene = new Scene(root);
+        stage.setTitle("e-Dispensary - Admin Dashboard");
+        stage.setResizable(false);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    // Helper method to load home page for regular users
+    private void loadHomePage() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("home.fxml"));
+        Parent root = loader.load();
+
+        Stage stage = new Stage();
+        Scene scene = new Scene(root, 1400, 800);
+        stage.setTitle("e-Dispensary - Home");
+        stage.setResizable(false);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    // Helper method to load new scenes (kept for compatibility)
     private void loadNewScene(String fxmlFile, String title) throws IOException {
         URL resource = getClass().getResource(fxmlFile);
         if (resource != null) {
