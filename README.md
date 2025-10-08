@@ -1,222 +1,190 @@
 # e-Dispensary - Pharmacy Management System
 
-A JavaFX-based pharmacy management system with database integration for managing medicines, customers, and orders.
+A JavaFX-based pharmacy management system with MySQL database integration, real-time chat functionality, and comprehensive inventory management.
 
-## 📋 What Has Been Set Up
+![Java](https://img.shields.io/badge/Java-21-orange)
+![JavaFX](https://img.shields.io/badge/JavaFX-21.0.6-blue)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
+![Maven](https://img.shields.io/badge/Maven-Build-red)
 
-### 1. **Database Connection**
-- MySQL JDBC connector has been added to `pom.xml`
-- Database connection class (`database.java`) is ready to connect to MySQL
-- Default credentials: `root` / `shawn12` for database `edispensary`
+## 🚀 Quick Start
 
-### 2. **Project Structure**
+### Prerequisites
+- Java JDK 21
+- Maven 3.8+
+- MySQL 8.0 (running on port 3307)
+
+### Installation
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+
+# 2. Set up database
+mysql -u root -p -P 3307 < src/main/resources/database/complete_setup.sql
+
+# 3. Build and run
+mvn clean install
+mvn javafx:run
+```
+
+### Default Login Credentials
+| Username | Password | Role |
+|----------|----------|------|
+| admin | admin123 | Admin |
+| pharmacist | pharma123 | Pharmacist |
+| user | user123 | Customer |
+
+## 📚 Documentation
+
+📖 **[Complete Project Documentation](PROJECT_DOCUMENTATION.md)** - Detailed guide covering:
+- Full architecture and technology stack
+- Database schema with all tables
+- Complete function reference for every class
+- Data flow diagrams
+- Networking and real-time features explanation
+- Step-by-step setup instructions
+
+## ✨ Key Features
+
+### For Customers
+- 🏠 Browse medicine catalog
+- 🔍 Search and filter products
+- 🛒 Shopping cart functionality
+- 💳 Checkout and order placement
+- 💬 Real-time chat with pharmacist
+
+### For Admin/Pharmacist
+- 📊 Dashboard with analytics
+- 📦 Inventory management (CRUD operations)
+- 👥 Customer order management
+- 💰 Sales tracking and reports
+- 💬 Real-time customer support chat
+
+## 🏗️ Project Structure
+
 ```
 uni-project/
 ├── src/main/
 │   ├── java/com/iamshawn/uniproject/
-│   │   ├── HelloApplication.java          # Main application entry point
-│   │   ├── database.java                  # Database connection handler
-│   │   ├── CartController.java            # Shopping cart functionality (NEW)
-│   │   ├── CartItem.java                  # Cart item data model
-│   │   ├── medicineData.java              # Medicine data model (NEW)
-│   │   ├── customerData.java              # Customer data model
-│   │   ├── ChatServerManager.java         # Chat server manager (NEW)
-│   │   ├── HomeController.java            # Home page controller
-│   │   ├── ProductsController.java        # Products page controller
-│   │   ├── NavbarController.java          # Navigation bar controller
-│   │   ├── AboutController.java           # About page controller
-│   │   ├── ProductDetailsController.java  # Product details controller
-│   │   ├── dashboardController.java       # Admin dashboard controller
-│   │   └── AdminChatController.java       # Admin chat controller
-│   │
-│   └── resources/com/iamshawn/uniproject/
-│       ├── *.fxml                         # All FXML view files
-│       ├── cart.fxml                      # Shopping cart page (NEW)
-│       └── database/
-│           ├── setup_database.sql         # Database setup script (NEW)
-│           └── cart_table.sql             # Cart table schema
-│
-├── pom.xml                                # Maven configuration with MySQL dependency
-├── DATABASE_SETUP.md                      # Database setup guide (NEW)
-└── README.md                             # This file
+│   │   ├── HelloApplication.java       # Main entry point
+│   │   ├── database.java               # Database connection
+│   │   ├── ChatServerManager.java      # Real-time chat server (Port 8888)
+│   │   ├── Controllers/                # MVC Controllers
+│   │   │   ├── HelloController.java    # Login/Signup
+│   │   │   ├── HomeController.java     # Landing page
+│   │   │   ├── ProductsController.java # Product catalog
+│   │   │   ├── CartController.java     # Shopping cart
+│   │   │   ├── dashboardController.java # Admin panel
+│   │   │   ├── AdminChatController.java # Chat interface
+│   │   │   └── NavbarController.java   # Navigation
+│   │   └── Models/                     # Data models
+│   │       ├── medicineData.java
+│   │       ├── customerData.java
+│   │       └── CartItem.java
+│   └── resources/
+│       ├── com/iamshawn/uniproject/*.fxml  # UI layouts
+│       ├── database/complete_setup.sql      # Database setup
+│       └── images/                          # Product images
+└── pom.xml                             # Maven configuration
 ```
 
-### 3. **New/Updated Files**
-- ✅ **CartController.java** - Fully implemented with cart management features
-- ✅ **cart.fxml** - Shopping cart UI
-- ✅ **medicineData.java** - Data model for medicines
-- ✅ **ChatServerManager.java** - Chat server functionality
-- ✅ **setup_database.sql** - Complete database setup script
-- ✅ **DATABASE_SETUP.md** - Step-by-step database setup guide
+## 🔄 Real-Time Features Explained
 
-## 🚀 How to Run the Project
+### 1. **Chat System (TCP/IP Socket Programming)**
+- **Server**: `ChatServerManager.java` runs on **port 8888**
+- **Protocol**: Custom message protocol (USER:<name>, MSG:<text>)
+- **Threading**: Multi-threaded server with one thread per client
+- **UI Updates**: JavaFX `Platform.runLater()` for thread-safe UI updates
 
-### Step 1: Setup MySQL Database
+**How it works:**
+1. Admin starts server when dashboard loads
+2. Customer connects via chat button (creates Socket to localhost:8888)
+3. Messages sent through `PrintWriter` (OutputStreams)
+4. Messages received via `BufferedReader` (InputStreams)
+5. UI instantly updates on both ends
 
-1. **Start MySQL Server**
-   ```bash
-   sudo systemctl start mysql
-   ```
+### 2. **Database Real-Time Updates**
+- **Cart Updates**: `ObservableList<CartItem>` auto-refreshes TableView
+- **Inventory**: Admin changes immediately reflect in product listings
+- **Dashboard Stats**: Recalculated after each transaction
+- **Implementation**: JDBC with PreparedStatements + JavaFX Property binding
 
-2. **Login to MySQL**
-   ```bash
-   mysql -u root -p
-   ```
+## 🗄️ Database Schema Overview
 
-3. **Run the Setup Script**
-   ```sql
-   source /home/shawn/Documents/My-Project/uni-project/src/main/resources/database/setup_database.sql
-   ```
-   
-   Or manually:
-   ```bash
-   mysql -u root -p < src/main/resources/database/setup_database.sql
-   ```
+### Core Tables
+- **user** - Authentication (username, password, role)
+- **medicine** - Product catalog (id, name, brand, price, status)
+- **cart** - Shopping cart (user_id, medicine_id, quantity)
+- **customer** - Order line items
+- **customer_info** - Order summaries/invoices
 
-4. **Verify Database**
-   ```sql
-   USE edispensary;
-   SHOW TABLES;
-   SELECT * FROM medicine;
-   ```
+See [DATABASE_SETUP.md](DOCKER_MYSQL_SETUP.md) for detailed schema.
 
-### Step 2: Configure Database Connection (if needed)
+## 🔧 Technology Stack
 
-If you need to change database credentials, edit `src/main/java/com/iamshawn/uniproject/database.java`:
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | JavaFX 21.0.6, FXML, CSS |
+| **Backend** | Java 21, JDBC |
+| **Database** | MySQL 8.0 (Port 3307) |
+| **Networking** | Java Socket API (TCP/IP) |
+| **Build Tool** | Maven |
+| **UI Framework** | Scene Builder compatible |
 
-```java
-Connection connect = DriverManager.getConnection(
-    "jdbc:mysql://localhost:3306/edispensary",
-    "your_username",    // Change this
-    "your_password"     // Change this
-);
+## 📊 Function Summary
+
+### Data Flow
+```
+User Input → Controller → database.connectDb() → MySQL Query
+                ↓
+          ResultSet → Model (POJO) → ObservableList
+                ↓
+          TableView/UI Display
 ```
 
-### Step 3: Build and Run the Project
+### Key Functions by Component
 
-```bash
-# Navigate to project directory
-cd /home/shawn/Documents/My-Project/uni-project
+**Database Layer:**
+- `database.connectDb()` - Creates MySQL connection
 
-# Clean and compile
-mvn clean compile
+**Authentication:**
+- `HelloController.handleLogin()` - Validates credentials (SELECT from user)
+- `HelloController.handleSignup()` - Registers new user (INSERT into user)
 
-# Run the application
-mvn javafx:run
-```
+**Product Management:**
+- `ProductsController.displayProducts()` - Shows catalog (SELECT from medicine)
+- `dashboardController.addMedicinesAdd()` - Adds inventory (INSERT into medicine)
+- `dashboardController.addMedicinesUpdate()` - Updates product (UPDATE medicine)
 
-## 📊 Database Schema
+**Cart Operations:**
+- `CartController.loadCartItems()` - Loads cart (SELECT cart JOIN medicine)
+- `CartController.processCheckout()` - Completes order (INSERT customer, DELETE cart)
 
-### Tables Created:
-1. **user** - User authentication
-2. **medicine** - Medicine/product catalog
-3. **cart** - Shopping cart items
-4. **customer** - Order/purchase history
-5. **customer_info** - Customer transaction summary
+**Real-Time Chat:**
+- `ChatServerManager.startServer()` - Opens ServerSocket on port 8888
+- `AdminChatController.sendMessage()` - Writes to Socket OutputStream
+- `startMessageReceiver()` - Reads from Socket InputStream in separate thread
 
-### Sample Data Included:
-- 10 sample medicines
-- 2 test users:
-  - **Admin**: username: `admin`, password: `admin123`
-  - **Guest**: username: `guest`, password: `guest123`
+**Navigation:**
+- `SceneSwitcher.switchScene()` - Changes views with data passing
+- `DataReceiver.receiveData()` - Interface for receiving navigation data
 
-## 🎯 Features
+## 🔐 Security Notes
 
-### User Features:
-- Browse medicines/products
-- Search and filter products
-- Add items to cart
-- Checkout and place orders
-- View product details
+⚠️ **Current Status** (Development Build):
+- Passwords stored in plain text
+- PreparedStatements used (prevents basic SQL injection)
+- No session management
 
-### Admin Features:
-- Dashboard with analytics
-- Add/Update/Delete medicines
-- View customer orders
-- Manage inventory
-- Chat support system
+✅ **For Production**: Implement password hashing (BCrypt), HTTPS, JWT tokens
 
-## 🔧 Project Configuration
+## 📞 Support
 
-### Dependencies Added:
-- JavaFX Controls, FXML, Graphics, Base
-- MySQL Connector/J 8.2.0
-- JUnit 5 (for testing)
-
-### Java Version: 21
-### Maven Build Tool
-
-## 📝 Important Notes
-
-1. **Database Connection**: Ensure MySQL is running before starting the application
-2. **Port 3306**: MySQL default port must be available
-3. **First Run**: Make sure to run the database setup script first
-4. **Images**: Product images are stored in `src/main/resources/images/`
-
-## 🐛 Troubleshooting
-
-### Connection Failed
-- Check if MySQL service is running: `sudo systemctl status mysql`
-- Verify credentials in `database.java`
-- Ensure database `edispensary` exists
-
-### Compilation Errors
-- Run `mvn clean install` to refresh dependencies
-- Check Java version: `java -version` (should be 21)
-
-### Application Won't Start
-- Verify JavaFX installation
-- Check console output for detailed error messages
-- Ensure all FXML files are in correct locations
-
-## 📚 Next Steps
-
-1. **Test the application**:
-   ```bash
-   mvn javafx:run
-   ```
-
-2. **Login with test account**:
-   - Username: `guest`
-   - Password: `guest123`
-
-3. **Explore features**:
-   - Browse products
-   - Add items to cart
-   - Test checkout process
-
-4. **Admin Dashboard** (use admin account):
-   - Username: `admin`
-   - Password: `admin123`
-
-## 🎨 Customization
-
-### Change Database Credentials
-Edit `database.java` line 11-13
-
-### Add More Products
-Insert data into `medicine` table or use admin dashboard
-
-### Modify UI
-Edit corresponding `.fxml` files in resources folder
-
-## ✅ Project Status
-
-- ✅ Project compiles successfully
-- ✅ All controllers implemented
-- ✅ Database connection configured
-- ✅ FXML files properly linked
-- ✅ Cart functionality complete
-- ✅ Sample data included
-- ✅ Ready to run!
-
-## 🤝 Support
-
-For database setup details, see `DATABASE_SETUP.md`
+For detailed documentation on every function, data flow, and networking implementation, see:
+👉 **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)**
 
 ---
 
-**Author**: Shawn  
-**Project**: e-Dispensary Pharmacy Management System  
-**Version**: 1.0-SNAPSHOT
-
+**Version**: 1.0  
+**Last Updated**: October 2025  
+**Developer**: iamshawn
