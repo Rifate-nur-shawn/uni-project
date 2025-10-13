@@ -209,34 +209,49 @@ public class dashboardController implements Initializable {
         String sql = "SELECT date, SUM(total) FROM customer_info"
                 + " GROUP BY date ORDER BY TIMESTAMP(date) ASC LIMIT 9";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try{
+            localConnect = database.connectDb();
             XYChart.Series chart = new XYChart.Series();
 
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                chart.getData().add(new XYChart.Data(result.getString(1), result.getInt(2)));
+            while(localResult.next()){
+                chart.getData().add(new XYChart.Data(localResult.getString(1), localResult.getInt(2)));
             }
 
             dashboard_chart.getData().add(chart);
 
-        }catch(Exception e){e.printStackTrace();}
-
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void homeAM(){
         String sql = "SELECT COUNT(id) AS total FROM medicine WHERE status='Available'";
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
         int countAM = 0;
         try {
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localConnect = database.connectDb();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            if (result.next()) {
-                countAM = result.getInt("total");
+            if (localResult.next()) {
+                countAM = localResult.getInt("total");
             }
 
             dashboard_availableMed.setText(String.valueOf(countAM));
@@ -248,53 +263,91 @@ public class dashboardController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
             alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public void homeTI(){
         String sql = "SELECT SUM(total) FROM customer_info";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
         double totalDisplay = 0;
         try{
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localConnect = database.connectDb();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                totalDisplay = result.getDouble("SUM(total)");
+            while(localResult.next()){
+                totalDisplay = localResult.getDouble("SUM(total)");
             }
 
             dashboard_totalIncome.setText( String.valueOf(totalDisplay));
 
-        }catch(Exception e){e.printStackTrace();}
-
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
+
     public void homeTC(){
 
         String sql = "SELECT COUNT(id) FROM customer_info";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
         int countTC = 0;
 
         try{
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localConnect = database.connectDb();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                countTC = result.getInt("COUNT(id)");
+            while(localResult.next()){
+                countTC = localResult.getInt("COUNT(id)");
             }
 
             dashboard_totalCustomers.setText(String.valueOf(countTC));
 
-        }catch(Exception e){e.printStackTrace();}
-
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     public void addMedicinesAdd() {
         String sql = "INSERT INTO medicine (medicine_id, brand, productName, type, status, price, image, date) "
                 + "VALUES(?,?,?,?,?,?,?,?)";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        Statement localStatement = null;
+        ResultSet localResult = null;
+
         try {
+            localConnect = database.connectDb();
             Alert alert;
 
             if (addMedicines_medicineID.getText().isEmpty()
@@ -313,41 +366,38 @@ public class dashboardController implements Initializable {
                 String checkData = "SELECT medicine_id FROM medicine WHERE medicine_id = '"
                         + addMedicines_medicineID.getText() + "'";
 
-                statement = connect.createStatement();
-                result = statement.executeQuery(checkData);
+                localStatement = localConnect.createStatement();
+                localResult = localStatement.executeQuery(checkData);
 
-
-                if (result.next()) {
+                if (localResult.next()) {
                     alert = new Alert(AlertType.ERROR);
                     alert.setTitle("Error Message");
                     alert.setHeaderText(null);
                     alert.setContentText("Medicine ID: " + addMedicines_medicineID.getText() + " was already exist!");
                     alert.showAndWait();
                 } else {
-
-                    prepare = connect.prepareStatement(sql);
-                    prepare.setString(1, addMedicines_medicineID.getText());
-                    prepare.setString(2, addMedicines_brand.getText());
-                    prepare.setString(3, addMedicines_productName.getText());
-                    prepare.setString(4, (String) addMedicines_type.getSelectionModel().getSelectedItem());
-                    prepare.setString(5, (String) addMedicines_status.getSelectionModel().getSelectedItem());
-                    prepare.setString(6, addMedicines_price.getText());
+                    localPrepare = localConnect.prepareStatement(sql);
+                    localPrepare.setString(1, addMedicines_medicineID.getText());
+                    localPrepare.setString(2, addMedicines_brand.getText());
+                    localPrepare.setString(3, addMedicines_productName.getText());
+                    localPrepare.setString(4, (String) addMedicines_type.getSelectionModel().getSelectedItem());
+                    localPrepare.setString(5, (String) addMedicines_status.getSelectionModel().getSelectedItem());
+                    localPrepare.setString(6, addMedicines_price.getText());
                     String uri = getData.path;
                     uri = uri.replace("\\", "\\\\");
 
-                    prepare.setString(7, uri);
+                    localPrepare.setString(7, uri);
 
                     Date date = new Date();
                     java.sql.Date sqlDate = new java.sql.Date(date.getTime());
-                    prepare.setString(8, String.valueOf(sqlDate));
-                    prepare.executeUpdate();
+                    localPrepare.setString(8, String.valueOf(sqlDate));
+                    localPrepare.executeUpdate();
                     alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Information Message");
                     alert.setHeaderText(null);
                     alert.setContentText("Successfully Added!");
                     alert.showAndWait();
                     addMedicineShowListData();
-
                 }
             }
         } catch (Exception e) {
@@ -357,6 +407,15 @@ public class dashboardController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
             alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localStatement != null) localStatement.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     public void addMedicineUpdate(){
@@ -372,9 +431,11 @@ public class dashboardController implements Initializable {
                 +addMedicines_price.getText()+"', image = '"+uri+"' WHERE medicine_id = '"
                 +addMedicines_medicineID.getText()+"'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        Statement localStatement = null;
 
         try{
+            localConnect = database.connectDb();
             Alert alert;
 
             if(addMedicines_medicineID.getText().isEmpty()
@@ -397,8 +458,8 @@ public class dashboardController implements Initializable {
                 Optional<ButtonType> option = alert.showAndWait();
 
                 if(option.get().equals(ButtonType.OK)){
-                    statement = connect.createStatement();
-                    statement.executeUpdate(sql);
+                    localStatement = localConnect.createStatement();
+                    localStatement.executeUpdate(sql);
 
                     alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Information Message");
@@ -410,16 +471,27 @@ public class dashboardController implements Initializable {
                     addMedicineReset();
                 }
             }
-        }catch(Exception e){e.printStackTrace();}
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localStatement != null) localStatement.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void addMedicineDelete(){
 
         String sql = "DELETE FROM medicine WHERE medicine_id = '"+addMedicines_medicineID.getText()+"'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        Statement localStatement = null;
 
         try{
+            localConnect = database.connectDb();
             Alert alert;
 
             if(addMedicines_medicineID.getText().isEmpty()
@@ -442,8 +514,8 @@ public class dashboardController implements Initializable {
                 Optional<ButtonType> option = alert.showAndWait();
 
                 if(option.get().equals(ButtonType.OK)){
-                    statement = connect.createStatement();
-                    statement.executeUpdate(sql);
+                    localStatement = localConnect.createStatement();
+                    localStatement.executeUpdate(sql);
 
                     alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Information Message");
@@ -455,7 +527,16 @@ public class dashboardController implements Initializable {
                     addMedicineReset();
                 }
             }
-        }catch(Exception e){e.printStackTrace();}
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localStatement != null) localStatement.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void addMedicineReset(){
@@ -514,25 +595,36 @@ public class dashboardController implements Initializable {
 
         ObservableList<medicineData> listData = FXCollections.observableArrayList();
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try {
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localConnect = database.connectDb();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
             medicineData medData;
 
-            while (result.next()) {
-                medData = new medicineData(result.getInt("medicine_id"), result.getString("brand")
-                        , result.getString("productName"), result.getString("type")
-                        , result.getString("status"), result.getDouble("price")
-                        , result.getDate("date"), result.getString("image"));
+            while (localResult.next()) {
+                medData = new medicineData(localResult.getInt("medicine_id"), localResult.getString("brand")
+                        , localResult.getString("productName"), localResult.getString("type")
+                        , localResult.getString("status"), localResult.getDouble("price")
+                        , localResult.getDate("date"), localResult.getString("image"));
 
                 listData.add(medData);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return listData;
 
@@ -622,9 +714,13 @@ public class dashboardController implements Initializable {
         String sql = "INSERT INTO customer (customer_id,type,medicine_id,brand,productName,quantity,price,date)"
                 + " VALUES(?,?,?,?,?,?,?,?)";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        Statement localStatement = null;
+        ResultSet localResult = null;
 
         try{
+            localConnect = database.connectDb();
             Alert alert;
 
             if(purchase_type.getSelectionModel().getSelectedItem() == null
@@ -638,59 +734,80 @@ public class dashboardController implements Initializable {
                 alert.showAndWait();
             }else{
 
-                prepare = connect.prepareStatement(sql);
-                prepare.setString(1, String.valueOf(customerId));
-                prepare.setString(2, (String)purchase_type.getSelectionModel().getSelectedItem());
-                prepare.setString(3, (String)purchase_medicineID.getSelectionModel().getSelectedItem());
-                prepare.setString(4, (String)purchase_brand.getSelectionModel().getSelectedItem());
-                prepare.setString(5, (String)purchase_productName.getSelectionModel().getSelectedItem());
-                prepare.setString(6, String.valueOf(qty));
+                localPrepare = localConnect.prepareStatement(sql);
+                localPrepare.setString(1, String.valueOf(customerId));
+                localPrepare.setString(2, (String)purchase_type.getSelectionModel().getSelectedItem());
+                localPrepare.setString(3, (String)purchase_medicineID.getSelectionModel().getSelectedItem());
+                localPrepare.setString(4, (String)purchase_brand.getSelectionModel().getSelectedItem());
+                localPrepare.setString(5, (String)purchase_productName.getSelectionModel().getSelectedItem());
+                localPrepare.setString(6, String.valueOf(qty));
 
                 String checkData = "SELECT price FROM medicine WHERE medicine_id = '"
                         +purchase_medicineID.getSelectionModel().getSelectedItem()+"'";
 
-                statement = connect.createStatement();
-                result = statement.executeQuery(checkData);
+                localStatement = localConnect.createStatement();
+                localResult = localStatement.executeQuery(checkData);
                 double priceD = 0;
-                if(result.next()){
-                    priceD = result.getDouble("price");
+                if(localResult.next()){
+                    priceD = localResult.getDouble("price");
                 }
 
                 totalP = (priceD * qty);
 
-                prepare.setString(7, String.valueOf(totalP));
+                localPrepare.setString(7, String.valueOf(totalP));
 
                 Date date = new Date();
                 java.sql.Date sqlDate = new java.sql.Date(date.getTime());
-                prepare.setString(8, String.valueOf(sqlDate));
+                localPrepare.setString(8, String.valueOf(sqlDate));
 
-                prepare.executeUpdate();
+                localPrepare.executeUpdate();
 
                 purchaseShowListData();
                 purchaseDisplayTotal();
             }
-
-            prepare = connect.prepareStatement(sql);
-        }catch(Exception e){e.printStackTrace();}
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localStatement != null) localStatement.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private double totalPriceD;
     public void  purchaseDisplayTotal(){
         String sql = "SELECT SUM(price) FROM customer WHERE customer_id = '"+customerId+"'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try{
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localConnect = database.connectDb();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            if(result.next()){
-                totalPriceD = result.getDouble("SUM(price)");
+            if(localResult.next()){
+                totalPriceD = localResult.getDouble("SUM(price)");
             }
             purchase_total.setText(String.valueOf(totalPriceD));
 
-        }catch(Exception e){e.printStackTrace();}
-
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     private double balance;
     private double amount;
@@ -718,9 +835,11 @@ public class dashboardController implements Initializable {
         String sql = "INSERT INTO customer_info (customer_id, total, date) "
                 + "VALUES(?,?,?)";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
 
         try{
+            localConnect = database.connectDb();
             Alert alert;
 
             if(totalPriceD == 0){
@@ -736,15 +855,15 @@ public class dashboardController implements Initializable {
 
                 if(option.get().equals(ButtonType.OK)){
 
-                    prepare = connect.prepareStatement(sql);
-                    prepare.setString(1, String.valueOf(customerId));
-                    prepare.setString(2, String.valueOf(totalPriceD));
+                    localPrepare = localConnect.prepareStatement(sql);
+                    localPrepare.setString(1, String.valueOf(customerId));
+                    localPrepare.setString(2, String.valueOf(totalPriceD));
 
                     Date date = new Date();
                     java.sql.Date sqlDate = new java.sql.Date(date.getTime());
-                    prepare.setString(3, String.valueOf(sqlDate));
+                    localPrepare.setString(3, String.valueOf(sqlDate));
 
-                    prepare.executeUpdate();
+                    localPrepare.executeUpdate();
 
                     alert = new Alert(AlertType.INFORMATION);
                     alert.setHeaderText(null);
@@ -756,8 +875,16 @@ public class dashboardController implements Initializable {
                 }
             }
 
-        }catch(Exception e){e.printStackTrace();}
-
+        }catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -775,28 +902,43 @@ public class dashboardController implements Initializable {
         purchaseCustomerId();
         String sql = "SELECT * FROM customer WHERE customer_id = '"+customerId+"'";
         ObservableList<customerData>listData =FXCollections.observableArrayList();
-        connect = database.connectDb();
-        try{
-            customerData customerD;
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
 
-            while(result.next()){
-                customerD = new customerData(result.getInt("customer_id")
-                        , result.getString("type"), result.getInt("medicine_id")
-                        , result.getString("brand"), result.getString("productName")
-                        , result.getInt("quantity"), result.getDouble("price")
-                        , result.getDate("date"));
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
+
+        try{
+            localConnect = database.connectDb();
+            customerData customerD;
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
+
+            while(localResult.next()){
+                customerD = new customerData(localResult.getInt("customer_id")
+                        , localResult.getString("type"), localResult.getInt("medicine_id")
+                        , localResult.getString("brand"), localResult.getString("productName")
+                        , localResult.getInt("quantity"), localResult.getDouble("price")
+                        , localResult.getDate("date"));
 
                 listData.add(customerD);
             }
 
-        }catch(Exception e){e.printStackTrace();
+        }catch(Exception e){
+            e.printStackTrace();
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Exception Caught");
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
-            alert.showAndWait();}
+            alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return listData;
 
     }
@@ -818,21 +960,27 @@ public class dashboardController implements Initializable {
     private int customerId;
     public void purchaseCustomerId(){
         String sql = "SELECT customer_id FROM customer";
-        connect=database.connectDb();
+
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        Statement localStatement = null;
+        ResultSet localResult = null;
+
         try{
-            prepare=connect.prepareStatement(sql);
-            result= prepare.executeQuery();
-            while(result.next()){
-                customerId = result.getInt("customer_id");
+            localConnect = database.connectDb();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
+            while(localResult.next()){
+                customerId = localResult.getInt("customer_id");
             }
             int cID = 0;
             String checkData = "SELECT customer_id FROM customer_info";
 
-            statement = connect.createStatement();
-            result = statement.executeQuery(checkData);
+            localStatement = localConnect.createStatement();
+            localResult = localStatement.executeQuery(checkData);
 
-            while(result.next()){
-                cID = result.getInt("customer_id");
+            while(localResult.next()){
+                cID = localResult.getInt("customer_id");
             }
             if(customerId == 0){
                 customerId+=1;
@@ -847,6 +995,15 @@ public class dashboardController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
             alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localStatement != null) localStatement.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -854,44 +1011,59 @@ public class dashboardController implements Initializable {
     public void purchaseType(){
         String sql = "SELECT type FROM medicine WHERE status = 'Available'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try{
+            localConnect = database.connectDb();
             ObservableList listData = FXCollections.observableArrayList();
 
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                listData.add(result.getString("type"));
+            while(localResult.next()){
+                listData.add(localResult.getString("type"));
             }
             purchase_type.setItems(listData);
 
             purchaseMedicineId();
 
-        }catch(Exception e){e.printStackTrace();
+        }catch(Exception e){
+            e.printStackTrace();
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Exception Caught");
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
-            alert.showAndWait();}
-
+            alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     public void purchaseMedicineId(){
 
         String sql = "SELECT * FROM medicine WHERE type = '"
                 +purchase_type.getSelectionModel().getSelectedItem()+"'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try{
+            localConnect = database.connectDb();
             ObservableList listData = FXCollections.observableArrayList();
 
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                listData.add(result.getString("medicine_id"));
+            while(localResult.next()){
+                listData.add(localResult.getString("medicine_id"));
             }
             purchase_medicineID.setItems(listData);
 
@@ -903,6 +1075,14 @@ public class dashboardController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
             alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -911,53 +1091,77 @@ public class dashboardController implements Initializable {
         String sql = "SELECT * FROM medicine WHERE medicine_id = '"
                 +purchase_medicineID.getSelectionModel().getSelectedItem()+"'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try{
+            localConnect = database.connectDb();
             ObservableList listData = FXCollections.observableArrayList();
 
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                listData.add(result.getString("brand"));
+            while(localResult.next()){
+                listData.add(localResult.getString("brand"));
             }
             purchase_brand.setItems(listData);
 
             purchaseProductName();
 
-        }catch(Exception e){e.printStackTrace();
+        }catch(Exception e){
+            e.printStackTrace();
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Exception Caught");
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
-            alert.showAndWait();}
-
+            alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     public void purchaseProductName(){
 
         String sql = "SELECT * FROM medicine WHERE brand = '"
                 +purchase_brand.getSelectionModel().getSelectedItem()+"'";
 
-        connect = database.connectDb();
+        Connection localConnect = null;
+        PreparedStatement localPrepare = null;
+        ResultSet localResult = null;
 
         try{
+            localConnect = database.connectDb();
             ObservableList listData = FXCollections.observableArrayList();
 
-            prepare = connect.prepareStatement(sql);
-            result = prepare.executeQuery();
+            localPrepare = localConnect.prepareStatement(sql);
+            localResult = localPrepare.executeQuery();
 
-            while(result.next()){
-                listData.add(result.getString("productName"));
+            while(localResult.next()){
+                listData.add(localResult.getString("productName"));
             }
             purchase_productName.setItems(listData);
-        }catch(Exception e){e.printStackTrace();
+        }catch(Exception e){
+            e.printStackTrace();
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Exception Caught");
             alert.setHeaderText(null);
             alert.setContentText("Error: " + e.getMessage());
-            alert.showAndWait();}
-
+            alert.showAndWait();
+        } finally {
+            try {
+                if (localResult != null) localResult.close();
+                if (localPrepare != null) localPrepare.close();
+                if (localConnect != null) localConnect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -1062,11 +1266,24 @@ public class dashboardController implements Initializable {
                 chatManager.startServer();
             }
 
+            // Load the admin chat interface
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("admin_chat.fxml"));
+            Parent root = loader.load();
+
+            // Create new stage for chat window
+            Stage chatStage = new Stage();
+            chatStage.setTitle("Admin Chat Support");
+            chatStage.setScene(new Scene(root));
+            chatStage.setResizable(false);
+
+            // Show the chat window
+            chatStage.show();
+
             // Show confirmation to admin
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Chat Server");
             alert.setHeaderText("Chat Support Activated");
-            alert.setContentText("Chat server is now running. New windows will open when users connect.");
+            alert.setContentText("Chat server is running. Chat window opened. Waiting for customers to connect...");
             alert.showAndWait();
 
         } catch (Exception e) {

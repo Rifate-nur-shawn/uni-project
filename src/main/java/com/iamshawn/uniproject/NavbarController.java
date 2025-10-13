@@ -37,20 +37,14 @@ public class NavbarController implements Initializable {
     private Button signupBtn;
 
     @FXML
-    private Button dashboardBtn;
-
-    @FXML
     private Button cartBtn;
 
     @FXML
     private Button chatBtn;
 
-    @FXML
-    private Button logoutBtn;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Initialize the navbar based on user login status
+        // Update navbar based on login status
         updateNavbarBasedOnLoginStatus();
     }
 
@@ -60,69 +54,25 @@ public class NavbarController implements Initializable {
         try {
             loadScene("home.fxml", "e-Dispensary - Home", event);
         } catch (Exception e) {
-            showInfoAlert("Navigation", "Home page would load here.");
+            showErrorAlert("Navigation Error", "Could not load home page.");
         }
     }
 
     @FXML
     private void navigateToProducts(ActionEvent event) {
         try {
-            // Debug: Print to console
-            System.out.println("Attempting to load Products page...");
-
-            // Check if the FXML file exists
-            URL productsResource = getClass().getResource("products.fxml");
-            if (productsResource == null) {
-                throw new IOException("products.fxml file not found in resources");
-            }
-
-            System.out.println("Products.fxml found, loading...");
-            FXMLLoader loader = new FXMLLoader(productsResource);
-            Parent root = loader.load();
-
-            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, 1000, 700);
-            stage.setTitle("e-Dispensary - Products");
-            stage.setScene(scene);
-            stage.show();
-
-            System.out.println("Products page loaded successfully!");
-
+            loadScene("products.fxml", "e-Dispensary - Products", event);
         } catch (Exception e) {
-            System.err.println("Error loading Products page: " + e.getMessage());
-            e.printStackTrace();
-            showErrorAlert("Navigation Error", "Could not load Products page. Error: " + e.getMessage());
+            showErrorAlert("Navigation Error", "Could not load products page.");
         }
     }
 
     @FXML
     private void navigateToAbout(ActionEvent event) {
         try {
-            // Debug: Print to console
-            System.out.println("Attempting to load About page...");
-
-            // Check if the FXML file exists
-            URL aboutResource = getClass().getResource("about.fxml");
-            if (aboutResource == null) {
-                throw new IOException("about.fxml file not found in resources");
-            }
-
-            System.out.println("About.fxml found, loading...");
-            FXMLLoader loader = new FXMLLoader(aboutResource);
-            Parent root = loader.load();
-
-            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, 1000, 700);
-            stage.setTitle("e-Dispensary - About");
-            stage.setScene(scene);
-            stage.show();
-
-            System.out.println("About page loaded successfully!");
-
+            loadScene("about.fxml", "e-Dispensary - About", event);
         } catch (Exception e) {
-            System.err.println("Error loading About page: " + e.getMessage());
-            e.printStackTrace();
-            showErrorAlert("Navigation Error", "Could not load About page. Error: " + e.getMessage());
+            showErrorAlert("Navigation Error", "Could not load about page.");
         }
     }
 
@@ -151,26 +101,11 @@ public class NavbarController implements Initializable {
     }
 
     @FXML
-    private void navigateToDashboard(ActionEvent event) {
-        try {
-            // Check if user is admin or regular user
-            if (HelloController.isCurrentUserAdmin()) {
-                loadScene("admin-dashboard.fxml", "e-Dispensary - Admin Dashboard", event);
-            } else {
-                loadScene("user-dashboard.fxml", "e-Dispensary - User Dashboard", event);
-            }
-        } catch (Exception e) {
-            String userType = HelloController.isCurrentUserAdmin() ? "Admin" : "User";
-            showInfoAlert("Navigation", userType + " dashboard would load here.");
-        }
-    }
-
-    @FXML
     private void navigateToCart(ActionEvent event) {
         try {
             loadScene("cart.fxml", "e-Dispensary - Shopping Cart", event);
         } catch (Exception e) {
-            showInfoAlert("Navigation", "Shopping cart would load here.");
+            showErrorAlert("Navigation Error", "Could not load cart page.");
         }
     }
 
@@ -179,28 +114,7 @@ public class NavbarController implements Initializable {
         try {
             loadScene("chat.fxml", "e-Dispensary - Chat", event);
         } catch (Exception e) {
-            showInfoAlert("Navigation", "Chat feature would load here.");
-        }
-    }
-
-    @FXML
-    private void logout(ActionEvent event) {
-        try {
-            // Clear user session data
-            // Note: This would typically clear any stored user session
-
-            // Show logout confirmation
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Logout");
-            alert.setHeaderText(null);
-            alert.setContentText("You have been logged out successfully!");
-            alert.showAndWait();
-
-            // Navigate back to login page
-            loadScene("hello-view.fxml", "e-Dispensary - Login", event);
-
-        } catch (Exception e) {
-            showErrorAlert("Logout Error", "Could not complete logout process.");
+            showErrorAlert("Navigation Error", "Could not load chat page.");
         }
     }
 
@@ -217,15 +131,6 @@ public class NavbarController implements Initializable {
         } else {
             throw new IOException("FXML file not found: " + fxmlFile);
         }
-    }
-
-    // Helper method to show information alerts
-    private void showInfoAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     // Helper method to show error alerts
@@ -246,18 +151,14 @@ public class NavbarController implements Initializable {
             // Hide login/signup buttons, show user-specific buttons
             loginBtn.setVisible(false);
             signupBtn.setVisible(false);
-            dashboardBtn.setVisible(true);
-            cartBtn.setVisible(true);
             chatBtn.setVisible(true);
-            logoutBtn.setVisible(true);
+            cartBtn.setVisible(true);
         } else {
             // Show login/signup buttons, hide user-specific buttons
             loginBtn.setVisible(true);
             signupBtn.setVisible(true);
-            dashboardBtn.setVisible(false);
-            cartBtn.setVisible(false);
             chatBtn.setVisible(false);
-            logoutBtn.setVisible(false);
+            cartBtn.setVisible(false);
         }
     }
 
@@ -284,15 +185,6 @@ public class NavbarController implements Initializable {
             case "about":
                 aboutBtn.setStyle(activeStyle);
                 break;
-            case "dashboard":
-                dashboardBtn.setStyle(activeStyle);
-                break;
-            case "cart":
-                cartBtn.setStyle(activeStyle);
-                break;
-            case "chat":
-                chatBtn.setStyle(activeStyle);
-                break;
         }
     }
 
@@ -303,15 +195,5 @@ public class NavbarController implements Initializable {
         homeBtn.setStyle(defaultStyle);
         productsBtn.setStyle(defaultStyle);
         aboutBtn.setStyle(defaultStyle);
-
-        if (dashboardBtn.isVisible()) {
-            dashboardBtn.setStyle("-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-cursor: hand; -fx-border-radius: 5; -fx-border-color: white; -fx-border-width: 1; -fx-background-radius: 5;");
-        }
-        if (cartBtn.isVisible()) {
-            cartBtn.setStyle(defaultStyle);
-        }
-        if (chatBtn.isVisible()) {
-            chatBtn.setStyle(defaultStyle);
-        }
     }
 }

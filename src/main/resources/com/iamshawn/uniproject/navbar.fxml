@@ -17,9 +17,6 @@
                      <image>
                         <Image url="@../../../images/stetho.png" />
                      </image>
-                     <HBox.margin>
-                        <Insets />
-                     </HBox.margin>
                   </ImageView>
                   <Label prefHeight="36.0" prefWidth="188.0" text="e-Dispensary" textFill="WHITE">
                      <font>
@@ -36,7 +33,7 @@
             <Region HBox.hgrow="ALWAYS" />
 
             <!-- Navigation Buttons -->
-            <HBox alignment="CENTER_RIGHT" prefHeight="80.0" prefWidth="742.0" spacing="20.0">
+            <HBox alignment="CENTER_RIGHT" prefHeight="80.0" spacing="20.0">
                <children>
                   <Button fx:id="homeBtn" mnemonicParsing="false" onAction="#navigateToHome" prefHeight="31.0" prefWidth="91.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Home">
                      <font>
@@ -62,6 +59,8 @@
                         <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
                      </padding>
                   </Button>
+
+                  <!-- Login button (visible when NOT logged in) -->
                   <Button fx:id="loginBtn" mnemonicParsing="false" onAction="#navigateToLogin" prefHeight="31.0" prefWidth="84.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Login">
                      <font>
                         <Font name="System Bold" size="14.0" />
@@ -70,6 +69,8 @@
                         <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
                      </padding>
                   </Button>
+
+                  <!-- Sign Up button (visible when NOT logged in) -->
                   <Button fx:id="signupBtn" mnemonicParsing="false" onAction="#navigateToSignup" prefHeight="31.0" prefWidth="99.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Sign Up">
                      <font>
                         <Font name="System Bold" size="14.0" />
@@ -78,7 +79,9 @@
                         <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
                      </padding>
                   </Button>
-                  <Button fx:id="dashboardBtn" mnemonicParsing="false" onAction="#navigateToDashboard" style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-cursor: hand; -fx-border-radius: 5; -fx-border-color: white; -fx-border-width: 1; -fx-background-radius: 5;" text="Dashboard" visible="false">
+
+                  <!-- Chat button (replaces Login when logged in) -->
+                  <Button fx:id="chatBtn" mnemonicParsing="false" onAction="#navigateToChat" prefHeight="31.0" prefWidth="84.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Chat" visible="false">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>
@@ -86,30 +89,9 @@
                         <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
                      </padding>
                   </Button>
-                  <Button fx:id="cartBtn" mnemonicParsing="false" onAction="#navigateToCart" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" visible="false">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
-                     </font>
-                     <padding>
-                        <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
-                     </padding>
-                     <graphic>
-                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../../../images/cart-icon.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="chatBtn" mnemonicParsing="false" onAction="#navigateToChat" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Chat" visible="false">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
-                     </font>
-                     <padding>
-                        <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
-                     </padding>
-                  </Button>
-                  <Button fx:id="logoutBtn" mnemonicParsing="false" onAction="#logout" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Logout" visible="false">
+
+                  <!-- Cart button (replaces Sign Up when logged in) -->
+                  <Button fx:id="cartBtn" mnemonicParsing="false" onAction="#navigateToCart" prefHeight="31.0" prefWidth="99.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;" text="Cart" visible="false">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>

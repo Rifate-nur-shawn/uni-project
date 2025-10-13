@@ -189,21 +189,33 @@ public class HelloController implements Initializable {
             username.clear();
             password.clear();
 
+            // Store user data globally
+            getData.username = inputUsername;
+            getData.isAdmin = isAdmin;
+
             // Close current window
             Stage currentStage = (Stage) loginbtn.getScene().getWindow();
             currentStage.close();
 
             try {
-                // Load the dashboard for all users
-                loadAdminDashboard();
+                // Route users based on their role
+                if (isAdmin) {
+                    // Admin users go to dashboard
+                    System.out.println("Loading admin dashboard for: " + inputUsername);
+                    loadAdminDashboard();
+                } else {
+                    // Regular users go to home page
+                    System.out.println("Loading home page for customer: " + inputUsername);
+                    loadHomePage();
+                }
             } catch (Exception e) {
-                System.err.println("Error loading dashboard: " + e.getMessage());
+                System.err.println("Error loading interface: " + e.getMessage());
                 e.printStackTrace();
 
                 alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Navigation Error");
                 alert.setHeaderText(null);
-                alert.setContentText("Error loading dashboard: " + e.getMessage());
+                alert.setContentText("Error loading interface: " + e.getMessage());
                 alert.showAndWait();
             }
         } else {

@@ -7,6 +7,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -16,17 +17,16 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
 
+/**
+ * Admin chat controller - manages the server-side chat interface
+ * Starts the chat server and handles communication with connected customers
+ */
 public class AdminChatController implements Initializable {
 
     @FXML
@@ -34,6 +34,9 @@ public class AdminChatController implements Initializable {
 
     @FXML
     private VBox chatBox;
+
+    @FXML
+    private ScrollPane scrollPane;
 
     @FXML
     private TextField messageField;
@@ -47,122 +50,130 @@ public class AdminChatController implements Initializable {
     @FXML
     private Label userLabel;
 
-    private Socket clientSocket;
-    private PrintWriter writer;
-    private BufferedReader reader;
-    private Thread receiverThread;
     private boolean connected = false;
     private String currentUser = "";
-
-    // Callback for when username is identified
-    private Consumer<String> onUserIdentified;
+    private ChatServerManager serverManager;
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // This is now a passive controller that waits for a client connection
-        // The connection will be provided by ChatServerManager
-        statusLabel.setText("Waiting for connection...");
-        statusLabel.setTextFill(Color.web("#f39c12"));
-    }
+        System.out.println("AdminChatController initialized");
 
-    /**
-     * Initialize this controller with a specific client socket
-     */
-    public void initializeWithClient(Socket socket) {
-        this.clientSocket = socket;
-        this.connected = true;
+        // Get server manager instance
+        serverManager = ChatServerManager.getInstance();
 
-        try {
-            // Set up communication streams
-            writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        // Register this controller with the server FIRST
+        System.out.println("Registering admin controller with server manager");
+        serverManager.setAdminController(this);
 
-            Platform.runLater(() -> {
-                statusLabel.setText("User connected");
-                statusLabel.setTextFill(Color.web("#27ae60"));
-                addSystemMessage("User connected. Waiting for identification...");
-            });
+        // Start the chat server
+        if (!serverManager.isRunning()) {
+            System.out.println("Starting chat server...");
+            serverManager.startServer();
 
-            // Start receiving messages
-            startMessageReceiver();
-        } catch (IOException e) {
-            Platform.runLater(() -> {
-                statusLabel.setText("Connection error");
-                statusLabel.setTextFill(Color.web("#e74c3c"));
-                addSystemMessage("Error setting up connection: " + e.getMessage());
-            });
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Set a callback for when the username is identified
-     */
-    public void setOnUserIdentified(Consumer<String> callback) {
-        this.onUserIdentified = callback;
-    }
-
-    private void startMessageReceiver() {
-        receiverThread = new Thread(() -> {
+            // Wait a bit for server to start
             try {
-                String message;
-                while ((message = reader.readLine()) != null) {
-                    final String finalMessage = message;
-                    Platform.runLater(() -> processMessage(finalMessage));
-                }
-            } catch (IOException e) {
-                if (connected) {
-                    Platform.runLater(() -> {
-                        statusLabel.setText("User disconnected");
-                        statusLabel.setTextFill(Color.web("#e74c3c"));
-                        userLabel.setText("No active user");
-                        addSystemMessage("User " + currentUser + " disconnected.");
-                        currentUser = "";
-                    });
-                    connected = false;
-                }
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
+            Platform.runLater(() -> {
+                statusLabel.setText("Server running - Waiting for customers");
+                statusLabel.setTextFill(Color.web("#27ae60"));
+                addSystemMessage("Chat server started on port " + serverManager.getPort());
+                addSystemMessage("Waiting for customers to connect...");
+            });
+        } else {
+            System.out.println("Server already running, reconnecting admin controller");
+            Platform.runLater(() -> {
+                statusLabel.setText("Server already running - Waiting for customers");
+                statusLabel.setTextFill(Color.web("#27ae60"));
+                addSystemMessage("Connected to existing chat server on port " + serverManager.getPort());
+
+                // Check if there are already connected clients
+                List<String> connectedClients = serverManager.getConnectedClients();
+                if (!connectedClients.isEmpty()) {
+                    String firstClient = connectedClients.get(0);
+                    addSystemMessage("Found existing connection: " + firstClient);
+                    handleNewClient(firstClient);
+                } else {
+                    addSystemMessage("Waiting for customers to connect...");
+                }
+            });
+        }
+
+        // Set callback for new client connections (ALWAYS set this)
+        System.out.println("Setting callback for new clients");
+        serverManager.setOnNewClientCallback((socket, username) -> {
+            System.out.println("Callback triggered for new client: " + username);
+            handleNewClient(username);
         });
 
-        receiverThread.setDaemon(true);
-        receiverThread.start();
+        // Enable send button and enter key
+        sendButton.setOnAction(e -> sendMessage());
+        messageField.setOnAction(e -> sendMessage());
+
+        System.out.println("AdminChatController initialization complete");
     }
 
-    private void processMessage(String message) {
-        if (message.startsWith("USER:")) {
-            // Handle user identification
-            currentUser = message.substring(5); // Remove "USER:" prefix
-            userLabel.setText(currentUser);
-            addSystemMessage("User " + currentUser + " connected.");
+    /**
+     * Handle new client connection
+     */
+    private void handleNewClient(String username) {
+        System.out.println("handleNewClient called for: " + username);
+        this.currentUser = username;
+        this.connected = true;
 
-            // Notify using the callback if available
-            if (onUserIdentified != null) {
-                onUserIdentified.accept(currentUser);
-            }
-        } else if (message.startsWith("MSG:")) {
-            // Handle regular message
-            String userMsg = message.substring(4); // Remove "MSG:" prefix
-            addUserMessage(userMsg);
-        } else {
-            // Unknown message format
-            System.out.println("Unknown message format: " + message);
+        Platform.runLater(() -> {
+            statusLabel.setText("User connected");
+            statusLabel.setTextFill(Color.web("#27ae60"));
+            userLabel.setText(currentUser);
+            addSystemMessage("User " + currentUser + " connected. You can now chat!");
+        });
+    }
+
+    /**
+     * Receive message from customer (called by ChatServerManager)
+     */
+    public void receiveCustomerMessage(String username, String message) {
+        System.out.println("receiveCustomerMessage called - User: " + username + ", Message: " + message);
+
+        // If this is a different user than current, switch to them
+        if (!username.equals(currentUser)) {
+            currentUser = username;
+            userLabel.setText(currentUser);
+            connected = true;
+            addSystemMessage("Switched to conversation with " + currentUser);
         }
+
+        addUserMessage(message);
+        scrollToBottom();
     }
 
     @FXML
     private void sendMessage() {
         String message = messageField.getText().trim();
-        if (message.isEmpty() || !connected) {
+        System.out.println("sendMessage called - Message: '" + message + "', Connected: " + connected + ", CurrentUser: '" + currentUser + "'");
+
+        if (message.isEmpty()) {
             return;
         }
 
-        // Send message to client
-        writer.println("ADMIN:" + message);
+        if (!connected || currentUser == null || currentUser.isEmpty()) {
+            addSystemMessage("No customer connected. Waiting for customers to join...");
+            messageField.clear();
+            return;
+        }
+
+        // Send message through server manager
+        boolean sent = serverManager.sendToClient(currentUser, message);
+        System.out.println("Message sent status: " + sent);
 
         // Add message to chat UI
         addAdminMessage(message);
+        scrollToBottom();
 
         // Clear input field
         messageField.clear();
@@ -230,20 +241,19 @@ public class AdminChatController implements Initializable {
         chatBox.getChildren().add(messageBox);
     }
 
+    private void scrollToBottom() {
+        Platform.runLater(() -> {
+            if (scrollPane != null) {
+                scrollPane.setVvalue(1.0);
+            }
+        });
+    }
+
     // Method to be called when the window is closed
     public void shutdown() {
         connected = false;
-
-        if (clientSocket != null && !clientSocket.isClosed()) {
-            try {
-                clientSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (receiverThread != null) {
-            receiverThread.interrupt();
-        }
+        currentUser = "";
+        // Note: We don't stop the server here as it should continue running
+        // for other potential connections
     }
 }

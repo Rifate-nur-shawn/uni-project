@@ -9,11 +9,10 @@
 <BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.iamshawn.uniproject.ProductsController">
    <left>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefViewportHeight="620.0" prefViewportWidth="1000.0" style="-fx-background-color: transparent; -fx-background: transparent;" vbarPolicy="AS_NEEDED" BorderPane.alignment="CENTER">
-
         <content>
                 <VBox alignment="TOP_CENTER" prefWidth="980.0" spacing="20.0" style="-fx-background-color: #f5f5f5;">
                     <children>
-                        <!-- Simple Page Header -->
+                        <!-- Page Header -->
                         <VBox alignment="CENTER" spacing="10.0" style="-fx-background-color: white; -fx-padding: 30;">
                             <children>
                                 <Label alignment="CENTER" text="Our Products" textFill="#2c3e50">
@@ -32,7 +31,7 @@
                             </VBox.margin>
                         </VBox>
 
-                        <!-- Clean Search and Filter Section -->
+                        <!-- Search and Filter Section -->
                         <VBox alignment="CENTER" spacing="15.0" style="-fx-background-color: white; -fx-padding: 25; -fx-background-radius: 10;">
                             <children>
                                 <HBox alignment="CENTER" prefHeight="50.0" prefWidth="900.0" spacing="20.0">
@@ -65,97 +64,6 @@
                                         <Insets bottom="30.0" left="20.0" right="20.0" top="20.0" />
                                     </padding>
                                 </GridPane>
-                            </children>
-                        </VBox>
-
-                        <!-- Simple Footer Section -->
-                        <VBox spacing="0.0">
-                            <children>
-                                <HBox alignment="CENTER" prefHeight="120.0" prefWidth="980.0" style="-fx-background-color: #2c3e50;">
-                                    <children>
-                                        <VBox alignment="CENTER" prefHeight="120.0" prefWidth="250.0" spacing="10.0">
-                                            <children>
-                                                <ImageView fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
-                                                    <image>
-                                                        <Image url="@../../../images/stetho.png" />
-                                                    </image>
-                                                </ImageView>
-                                                <Label text="e-Dispensary" textFill="WHITE">
-                                                    <font>
-                                                        <Font name="System Bold" size="20.0" />
-                                                    </font>
-                                                </Label>
-                                                <Label text="Your health, our priority" textFill="#95a5a6">
-                                                    <font>
-                                                        <Font name="System" size="12.0" />
-                                                    </font>
-                                                </Label>
-                                            </children>
-                                        </VBox>
-
-                                        <Region prefHeight="120.0" prefWidth="100.0" />
-
-                                        <VBox alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="8.0">
-                                            <children>
-                                                <Label text="Quick Links" textFill="WHITE">
-                                                    <font>
-                                                        <Font name="System Bold" size="14.0" />
-                                                    </font>
-                                                    <VBox.margin>
-                                                        <Insets bottom="5.0" />
-                                                    </VBox.margin>
-                                                </Label>
-                                                <Hyperlink onAction="#navigateToHome" style="-fx-text-fill: #95a5a6; -fx-font-size: 12px;" text="Home" />
-                                                <Hyperlink style="-fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold;" text="Products" />
-                                                <Hyperlink onAction="#navigateToAbout" style="-fx-text-fill: #95a5a6; -fx-font-size: 12px;" text="About Us" />
-                                            </children>
-                                        </VBox>
-
-                                        <Region prefHeight="120.0" prefWidth="100.0" />
-
-                                        <VBox alignment="CENTER" prefHeight="120.0" prefWidth="250.0" spacing="8.0">
-                                            <children>
-                                                <Label text="Contact Info" textFill="WHITE">
-                                                    <font>
-                                                        <Font name="System Bold" size="14.0" />
-                                                    </font>
-                                                    <VBox.margin>
-                                                        <Insets bottom="5.0" />
-                                                    </VBox.margin>
-                                                </Label>
-                                                <Label text="Email: info@edispensary.com" textFill="#95a5a6">
-                                                    <font>
-                                                        <Font size="11.0" />
-                                                    </font>
-                                                </Label>
-                                                <Label text="Phone: +1 (555) 123-4567" textFill="#95a5a6">
-                                                    <font>
-                                                        <Font size="11.0" />
-                                                    </font>
-                                                </Label>
-                                                <Label text="24/7 Customer Support" textFill="#3498db">
-                                                    <font>
-                                                        <Font name="System Bold" size="11.0" />
-                                                    </font>
-                                                </Label>
-                                            </children>
-                                        </VBox>
-                                    </children>
-                                    <VBox.margin>
-                                        <Insets top="30.0" />
-                                    </VBox.margin>
-                                </HBox>
-
-                                <!-- Copyright Section -->
-                                <HBox alignment="CENTER" prefHeight="40.0" prefWidth="980.0" style="-fx-background-color: #34495e;">
-                                    <children>
-                                        <Label text="© 2025 e-Dispensary. All Rights Reserved." textFill="#95a5a6">
-                                            <font>
-                                                <Font size="11.0" />
-                                            </font>
-                                        </Label>
-                                    </children>
-                                </HBox>
                             </children>
                         </VBox>
                     </children>

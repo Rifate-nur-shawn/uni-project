@@ -1,13 +1,19 @@
 package com.iamshawn.uniproject;
 
-import java.io.IOException;
+import javafx.application.Platform;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Manages the chat server for admin-customer communication
+ * This is a singleton server that handles multiple client connections
  */
 public class ChatServerManager {
     private static ChatServerManager instance;
@@ -15,7 +21,10 @@ public class ChatServerManager {
     private boolean running = false;
     private Thread serverThread;
     private final int PORT = 8888;
-    private List<Socket> clientSockets = new ArrayList<>();
+    private Map<String, ClientHandler> clients = new HashMap<>();
+    private BiConsumer<Socket, String> onNewClientCallback;
+    private Consumer<String> onMessageReceived;
+    private AdminChatController adminController;
 
     private ChatServerManager() {
         // Private constructor for singleton pattern
@@ -26,6 +35,53 @@ public class ChatServerManager {
             instance = new ChatServerManager();
         }
         return instance;
+    }
+
+    /**
+     * Set the admin controller reference
+     */
+    public void setAdminController(AdminChatController controller) {
+        this.adminController = controller;
+    }
+
+    /**
+     * Set callback for when a new client connects
+     */
+    public void setOnNewClientCallback(BiConsumer<Socket, String> callback) {
+        this.onNewClientCallback = callback;
+    }
+
+    /**
+     * Set callback for when a message is received
+     */
+    public void setOnMessageReceived(Consumer<String> callback) {
+        this.onMessageReceived = callback;
+    }
+
+    /**
+     * Send message from admin to specific client
+     */
+    public boolean sendToClient(String username, String message) {
+        System.out.println("sendToClient called - Username: " + username + ", Message: " + message);
+        ClientHandler handler = clients.get(username);
+        if (handler != null) {
+            System.out.println("Handler found for " + username + ", sending message...");
+            handler.sendMessage("ADMIN:" + message);
+            return true;
+        } else {
+            System.out.println("No handler found for " + username + ". Connected clients: " + clients.keySet());
+            return false;
+        }
+    }
+
+    /**
+     * Send message to all connected clients
+     */
+    public void broadcastToClients(String message) {
+        System.out.println("Broadcasting to " + clients.size() + " clients");
+        for (ClientHandler handler : clients.values()) {
+            handler.sendMessage("ADMIN:" + message);
+        }
     }
 
     public void startServer() {
@@ -43,11 +99,11 @@ public class ChatServerManager {
                 while (running) {
                     try {
                         Socket clientSocket = serverSocket.accept();
-                        clientSockets.add(clientSocket);
                         System.out.println("New client connected: " + clientSocket.getInetAddress());
 
                         // Handle client connection in a separate thread
-                        handleClientConnection(clientSocket);
+                        ClientHandler handler = new ClientHandler(clientSocket);
+                        handler.start();
                     } catch (IOException e) {
                         if (running) {
                             System.err.println("Error accepting client connection: " + e.getMessage());
@@ -64,37 +120,92 @@ public class ChatServerManager {
         serverThread.start();
     }
 
-    private void handleClientConnection(Socket clientSocket) {
-        // This method would handle individual client connections
-        // For now, it's a placeholder
-        Thread clientThread = new Thread(() -> {
+    /**
+     * Inner class to handle individual client connections
+     */
+    private class ClientHandler extends Thread {
+        private Socket socket;
+        private BufferedReader reader;
+        private PrintWriter writer;
+        private String username;
+
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
             try {
-                // Keep connection alive
-                while (running && !clientSocket.isClosed()) {
-                    Thread.sleep(1000);
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                writer = new PrintWriter(socket.getOutputStream(), true);
+
+                String message;
+                while ((message = reader.readLine()) != null) {
+                    System.out.println("Received: " + message);
+
+                    if (message.startsWith("USER:")) {
+                        // Handle user identification
+                        username = message.substring(5);
+                        clients.put(username, this);
+                        System.out.println("User identified: " + username);
+
+                        // Notify callback about new client
+                        if (onNewClientCallback != null) {
+                            final String finalUsername = username;
+                            Platform.runLater(() -> onNewClientCallback.accept(socket, finalUsername));
+                        }
+                    } else if (message.startsWith("MSG:")) {
+                        // Handle message from customer
+                        String userMessage = message.substring(4);
+                        System.out.println("Message from " + username + ": " + userMessage);
+
+                        // Forward to admin controller
+                        if (adminController != null) {
+                            final String finalMessage = userMessage;
+                            final String finalUsername = username;
+                            Platform.runLater(() -> adminController.receiveCustomerMessage(finalUsername, finalMessage));
+                        }
+                    }
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            } catch (IOException e) {
+                System.err.println("Client disconnected: " + (username != null ? username : "unknown"));
+            } finally {
+                cleanup();
             }
-        });
-        clientThread.setDaemon(true);
-        clientThread.start();
-    }
+        }
 
-    public void stopServer() {
-        running = false;
+        public void sendMessage(String message) {
+            if (writer != null) {
+                writer.println(message);
+            }
+        }
 
-        // Close all client sockets
-        for (Socket socket : clientSockets) {
+        public String getUsername() {
+            return username;
+        }
+
+        private void cleanup() {
+            if (username != null) {
+                clients.remove(username);
+            }
             try {
-                if (!socket.isClosed()) {
+                if (socket != null && !socket.isClosed()) {
                     socket.close();
                 }
             } catch (IOException e) {
                 System.err.println("Error closing client socket: " + e.getMessage());
             }
         }
-        clientSockets.clear();
+    }
+
+    public void stopServer() {
+        running = false;
+
+        // Close all client sockets
+        for (ClientHandler handler : clients.values()) {
+            handler.cleanup();
+        }
+        clients.clear();
 
         // Close server socket
         if (serverSocket != null && !serverSocket.isClosed()) {
@@ -115,8 +226,11 @@ public class ChatServerManager {
         return PORT;
     }
 
-    public List<Socket> getClientSockets() {
-        return new ArrayList<>(clientSockets);
+    public List<String> getConnectedClients() {
+        return new ArrayList<>(clients.keySet());
+    }
+
+    public ClientHandler getClientHandler(String username) {
+        return clients.get(username);
     }
 }
-

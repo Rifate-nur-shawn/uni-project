@@ -85,8 +85,17 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.iamshawn.uniproject.HelloApplication</mainClass>
-                            <commandlineArgs>--add-opens javafx.graphics/javafx.scene=ALL-UNNAMED</commandlineArgs>
+                            <mainClass>com.iamshawn.uniproject/com.iamshawn.uniproject.HelloApplication</mainClass>
+                            <options>
+                                <option>-Dprism.order=sw</option>
+                                <option>-Dprism.verbose=true</option>
+                                <option>--add-opens</option>
+                                <option>javafx.graphics/javafx.scene=ALL-UNNAMED</option>
+                                <option>--add-opens</option>
+                                <option>javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</option>
+                                <option>--add-opens</option>
+                                <option>javafx.controls/javafx.scene.control=ALL-UNNAMED</option>
+                            </options>
                         </configuration>
                     </execution>
                 </executions>
